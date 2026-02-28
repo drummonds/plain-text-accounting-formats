@@ -1,0 +1,90 @@
+; Full beancount example — all directive and entry types
+
+option "title" "Full Example Ledger"
+option "operating_currency" "GBP"
+
+plugin "beancount.plugins.auto_accounts"
+
+include "other.beancount"
+
+; Commodity declarations
+2024-01-01 commodity GBP
+  name: "British Pound"
+2024-01-01 commodity USD
+2024-01-01 commodity EUR
+
+; Account lifecycle
+2024-01-01 open Assets:Bank:Current GBP
+2024-01-01 open Assets:Bank:Savings GBP,USD
+2024-01-01 open Expenses:Food GBP
+2024-01-01 open Expenses:Rent GBP
+2024-01-01 open Income:Salary GBP
+2024-01-01 open Liabilities:CreditCard GBP
+2024-01-01 open Equity:Opening-Balances
+
+2024-12-31 close Liabilities:CreditCard
+
+; Transactions
+2024-01-15 * "Opening balance"
+  Assets:Bank:Current   5000.00 GBP
+  Equity:Opening-Balances
+
+2024-02-01 * "Landlord" "Monthly rent"
+  Expenses:Rent   1200.00 GBP
+  Assets:Bank:Current
+
+; Balance assertion
+2024-02-01 balance Assets:Bank:Current 3800.00 GBP
+
+; Pad directive
+2024-03-01 pad Assets:Bank:Current Equity:Opening-Balances
+
+; Note directive
+2024-03-15 note Assets:Bank:Current "Switched to premium account"
+
+; Document directive
+2024-04-01 document Assets:Bank:Current "/documents/statement-2024-04.pdf"
+
+; Event directive
+2024-05-01 event "location" "London"
+
+; Price directive
+2024-06-01 price USD 0.79 GBP
+2024-06-01 price EUR 0.86 GBP
+
+; Query directive
+2024-07-01 query "monthly-expenses" "
+  SELECT account, sum(position) WHERE account ~ 'Expenses'
+"
+
+; Custom directive
+2024-08-01 custom "budget" Expenses:Food "monthly" 500.00 GBP
+
+; Tags
+pushtag #project-alpha
+2024-09-01 * "Tagged transaction"
+  Expenses:Food   25.00 GBP
+  Assets:Bank:Current
+poptag #project-alpha
+
+; Metadata
+pushmeta reviewer: "alice"
+2024-10-01 * "Reviewed transaction"
+  Expenses:Food   30.00 GBP
+  Assets:Bank:Current
+popmeta reviewer:
+
+; Transaction with all the trimmings
+2024-11-01 * "Complex Corp" "Full-featured transaction" #work ^invoice-42
+  category: "consulting"
+  Expenses:Food   100.00 GBP
+    receipt: "receipt-42.pdf"
+  Assets:Bank:Current  -100.00 GBP
+
+* Org-mode section heading
+
+This is a section with an org-mode heading.
+
+2024-12-01 * "Year-end transaction"
+  Expenses:Food   50.00 GBP
+  Assets:Bank:Current

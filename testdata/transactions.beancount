@@ -1,0 +1,46 @@
+; Transaction variations
+
+option "title" "Transaction Examples"
+
+2024-01-01 open Assets:Bank:Current GBP
+2024-01-01 open Assets:Bank:Savings GBP,USD
+2024-01-01 open Expenses:Food GBP
+2024-01-01 open Expenses:Travel GBP,USD
+2024-01-01 open Income:Salary GBP
+2024-01-01 open Equity:Opening-Balances
+
+; Simple transaction with payee and narration
+2024-02-01 * "Sainsburys" "Lunch supplies"
+  Expenses:Food   12.30 GBP
+  Assets:Bank:Current
+
+; Transaction with tags and links
+2024-02-05 * "Flight to Paris" #travel ^trip-2024
+  Expenses:Travel   250.00 GBP
+  Assets:Bank:Current
+
+; Transaction with metadata
+2024-02-10 * "Monthly salary"
+  invoice: "2024-02-001"
+  Assets:Bank:Current   3500.00 GBP
+  Income:Salary
+
+; Transaction with cost spec
+2024-02-15 * "Buy USD"
+  Assets:Bank:Savings   500.00 USD {0.79 GBP}
+  Assets:Bank:Current  -395.00 GBP
+
+; Transaction with price annotation
+2024-02-20 * "Convert GBP to USD"
+  Assets:Bank:Savings   100.00 USD @ 0.79 GBP
+  Assets:Bank:Current
+
+; Flagged transaction (!)
+2024-02-25 ! "Pending refund"
+  Assets:Bank:Current   50.00 GBP
+  Expenses:Travel
+
+; Transaction with arithmetic
+2024-02-28 * "Split bill"
+  Expenses:Food   (90.00 / 3) GBP
+  Assets:Bank:Current

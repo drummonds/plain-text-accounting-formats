@@ -1,0 +1,17 @@
+; Simple beancount example
+
+option "title" "Simple Ledger"
+option "operating_currency" "GBP"
+
+2024-01-01 open Assets:Bank:Current GBP
+2024-01-01 open Expenses:Groceries GBP
+2024-01-01 open Income:Salary GBP
+2024-01-01 open Equity:Opening-Balances
+
+2024-01-01 * "Opening balance"
+  Assets:Bank:Current   1000.00 GBP
+  Equity:Opening-Balances
+
+2024-01-15 * "Tesco" "Weekly groceries"
+  Expenses:Groceries   45.50 GBP
+  Assets:Bank:Current

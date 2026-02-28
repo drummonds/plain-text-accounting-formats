@@ -1,0 +1,51 @@
+version: "3"
+
+tasks:
+  fmt:
+    desc: Format Go source files
+    cmds:
+      - go fmt ./...
+
+  vet:
+    desc: Run Go vet
+    cmds:
+      - go vet ./...
+
+  test:
+    desc: Run tests
+    cmds:
+      - go test ./... -count=1
+
+  check:
+    desc: Run fmt, vet, and test
+    cmds:
+      - task: fmt
+      - task: vet
+      - task: test
+
+  deps:tidy:
+    desc: Tidy Go modules
+    cmds:
+      - go mod tidy
+
+  clean:
+    desc: Remove build artifacts
+    cmds:
+      - go clean ./...
+
+  build:
+    desc: Build the CLI
+    cmds:
+      - go build -o bin/gts-beancount ./cmd/gts-beancount
+
+  release:
+    desc: Tag and push a release
+    preconditions:
+      - sh: '[ -n "{{.VERSION}}" ]'
+        msg: "VERSION is required (e.g., task release VERSION=v0.1.0 COMMENT='initial release')"
+      - sh: 'echo "{{.VERSION}}" | grep -q "^v"'
+        msg: "VERSION must start with v (e.g., v0.1.0)"
+    cmds:
+      - task: check
+      - git tag -a {{.VERSION}} -m "{{.COMMENT}}"
+      - git push origin {{.VERSION}}
