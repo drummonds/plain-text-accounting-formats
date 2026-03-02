@@ -58,7 +58,7 @@ include "other.beancount"
 "
 
 ; Custom directive
-2024-08-01 custom "budget" Expenses:Food "monthly" 500.00 GBP
+2024-08-01 custom "budget" Expenses:Food
 
 ; Tags
 pushtag #project-alpha
@@ -80,10 +80,6 @@ popmeta reviewer:
   Expenses:Food   100.00 GBP
     receipt: "receipt-42.pdf"
   Assets:Bank:Current  -100.00 GBP
-
-* Org-mode section heading
-
-This is a section with an org-mode heading.
 
 2024-12-01 * "Year-end transaction"
   Expenses:Food   50.00 GBP

@@ -76,5 +76,5 @@ func Highlight(src []byte) ([]gotreesitter.HighlightRange, error) {
 	if err != nil {
 		return nil, fmt.Errorf("highlight query: %w", err)
 	}
-	return hl.Highlight(src), nil
+	return hl.Highlight(StripBlankLines(src)), nil
 }

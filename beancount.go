@@ -3,6 +3,7 @@
 package beancount
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"strings"
@@ -11,6 +12,8 @@ import (
 	"github.com/odvcencio/gotreesitter/grammars"
 )
 
+var blankLine = []byte("\n\n")
+
 // Language returns the beancount tree-sitter language with external scanner attached.
 func Language() *gotreesitter.Language {
 	lang := grammars.BeancountLanguage()
@@ -18,10 +21,22 @@ func Language() *gotreesitter.Language {
 	return lang
 }
 
+// StripBlankLines collapses consecutive blank lines to a single newline.
+// Workaround for gotreesitter beancount grammar bug where 2+ blank lines
+// in the input cause the parse tree root to become an error node.
+// Parse and Highlight call this automatically; use it when you need byte
+// offsets from those functions to align with the source text.
+func StripBlankLines(src []byte) []byte {
+	for bytes.Contains(src, blankLine) {
+		src = bytes.ReplaceAll(src, blankLine, []byte("\n"))
+	}
+	return src
+}
+
 // Parse parses beancount source and returns the syntax tree.
 func Parse(src []byte) (*gotreesitter.Tree, error) {
 	parser := gotreesitter.NewParser(Language())
-	tree, err := parser.Parse(src)
+	tree, err := parser.Parse(StripBlankLines(src))
 	if err != nil {
 		return nil, fmt.Errorf("parse: %w", err)
 	}

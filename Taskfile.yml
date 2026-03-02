@@ -38,14 +38,33 @@ tasks:
     cmds:
       - go build -o bin/gts-beancount ./cmd/gts-beancount
 
-  release:
-    desc: Tag and push a release
-    preconditions:
-      - sh: '[ -n "{{.VERSION}}" ]'
-        msg: "VERSION is required (e.g., task release VERSION=v0.1.0 COMMENT='initial release')"
-      - sh: 'echo "{{.VERSION}}" | grep -q "^v"'
-        msg: "VERSION must start with v (e.g., v0.1.0)"
+  demo:
+    desc: Run all CLI subcommands against test data
+    deps: [build]
     cmds:
-      - task: check
-      - git tag -a {{.VERSION}} -m "{{.COMMENT}}"
-      - git push origin {{.VERSION}}
+      - echo "=== parse ===" && bin/gts-beancount parse testdata/simple.beancount
+      - echo "=== highlight ===" && bin/gts-beancount highlight testdata/simple.beancount
+      - echo "=== check ===" && bin/gts-beancount check testdata/simple.beancount
+
+  docs:build:
+    desc: Generate HTML docs from testdata
+    cmds:
+      - go run ./cmd/docs
+
+  docs:serve:
+    desc: Build docs and serve locally
+    deps: [docs:build]
+    cmds:
+      - task-plus pages --dir docs
+
+  # release:
+  #   desc: Tag and push a release
+  #   preconditions:
+  #     - sh: '[ -n "{{.VERSION}}" ]'
+  #       msg: "VERSION is required (e.g., task release VERSION=v0.1.0 COMMENT='initial release')"
+  #     - sh: 'echo "{{.VERSION}}" | grep -q "^v"'
+  #       msg: "VERSION must start with v (e.g., v0.1.0)"
+  #   cmds:
+  #     - task: check
+  #     - git tag -a {{.VERSION}} -m "{{.COMMENT}}"
+  #     - git push origin {{.VERSION}}

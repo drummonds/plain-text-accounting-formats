@@ -11,7 +11,7 @@ import (
 
 func main() {
 	if len(os.Args) < 3 {
-		fmt.Fprintf(os.Stderr, "Usage: gts-beancount <parse|highlight|check> <file>\n")
+		fmt.Fprintf(os.Stderr, "Usage: gts-beancount <parse|highlight|check|convert> <file>\n")
 		os.Exit(1)
 	}
 	cmd, path := os.Args[1], os.Args[2]
@@ -23,6 +23,14 @@ func main() {
 	}
 
 	switch cmd {
+	case "convert":
+		out, err := beancount.Convert(src)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+		os.Stdout.Write(out)
+
 	case "parse":
 		tree, err := beancount.Parse(src)
 		if err != nil {
@@ -37,7 +45,7 @@ func main() {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
-		printANSI(src, ranges)
+		printANSI(beancount.StripBlankLines(src), ranges)
 
 	case "check":
 		tree, err := beancount.Parse(src)
@@ -53,7 +61,7 @@ func main() {
 		fmt.Printf("%s: OK\n", path)
 
 	default:
-		fmt.Fprintf(os.Stderr, "Unknown command: %s\nUsage: gts-beancount <parse|highlight|check> <file>\n", cmd)
+		fmt.Fprintf(os.Stderr, "Unknown command: %s\nUsage: gts-beancount <parse|highlight|check|convert> <file>\n", cmd)
 		os.Exit(1)
 	}
 }

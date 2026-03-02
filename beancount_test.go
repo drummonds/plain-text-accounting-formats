@@ -38,7 +38,7 @@ func TestParseTransactions(t *testing.T) {
 		t.Fatal(err)
 	}
 	types := CollectNodeTypes(tree)
-	for _, want := range []string{"transaction", "posting", "amount"} {
+	for _, want := range []string{"transaction", "posting", "incomplete_amount"} {
 		if !types[want] {
 			t.Errorf("missing node type %q", want)
 		}
