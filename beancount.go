@@ -12,11 +12,14 @@ import (
 	"github.com/drummonds/gotreesitter/grammars"
 )
 
-var blankLine = []byte("\n\n")
+var (
+	blankLine      = []byte("\n\n")
+	beancountEntry = grammars.DetectLanguage(".beancount")
+)
 
 // Language returns the beancount tree-sitter language with external scanner attached.
 func Language() *gotreesitter.Language {
-	lang := grammars.BeancountLanguage()
+	lang := beancountEntry.Language()
 	lang.ExternalScanner = grammars.BeancountExternalScanner{}
 	return lang
 }

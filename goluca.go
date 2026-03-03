@@ -7,24 +7,12 @@ import (
 	"github.com/drummonds/gotreesitter/grammars"
 )
 
+var golucaEntry = grammars.DetectLanguage(".goluca")
+
 // GolucaLanguage returns the goluca tree-sitter language.
 func GolucaLanguage() *gotreesitter.Language {
-	return grammars.GolucaLanguage()
+	return golucaEntry.Language()
 }
-
-// GolucaHighlightQuery is the tree-sitter highlight query for goluca files.
-const GolucaHighlightQuery = `
-(date) @constant
-(flag) @keyword
-(payee) @string
-(account) @type
-(arrow) @operator
-(linked_prefix) @operator
-(description) @string
-(amount) @number
-(commodity) @constant
-(comment) @comment
-`
 
 // GolucaParse parses goluca source and returns the syntax tree.
 func GolucaParse(src []byte) (*gotreesitter.Tree, error) {
@@ -38,7 +26,7 @@ func GolucaParse(src []byte) (*gotreesitter.Tree, error) {
 
 // GolucaHighlight parses goluca source and returns highlight ranges.
 func GolucaHighlight(src []byte) ([]gotreesitter.HighlightRange, error) {
-	hl, err := gotreesitter.NewHighlighter(GolucaLanguage(), GolucaHighlightQuery)
+	hl, err := gotreesitter.NewHighlighter(GolucaLanguage(), golucaEntry.HighlightQuery)
 	if err != nil {
 		return nil, fmt.Errorf("goluca highlight query: %w", err)
 	}
