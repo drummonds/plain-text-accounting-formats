@@ -4,7 +4,10 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).## [0.1.1] - 2026-03-03
 
- - Colouring syntax comparison this is what this is meant to show
+ - Colouring syntax comparison this is what this is meant to show## [0.1.3] - 2026-03-03
+
+ - Trying to update docs git hub pages
+
 ## [0.1.2] - 2026-03-03
 
  - Working syntax
