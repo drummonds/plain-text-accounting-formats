@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
+## [0.2.0] - 2026-03-03
+
+### Added
+- Goluca parsing and syntax highlighting via `GolucaParse`, `GolucaHighlight`
+- Side-by-side beancount/goluca display in docs page
+- Forked gotreesitter with goluca and pta grammar support
+
+### Changed
+- Switched dependency from `odvcencio/gotreesitter` to `drummonds/gotreesitter` v0.5.3
+
 ## [0.1.0] - 2026-03-02
 
  - Starting conversion

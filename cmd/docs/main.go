@@ -8,16 +8,18 @@ import (
 	"path/filepath"
 	"sort"
 
+	"github.com/drummonds/gotreesitter"
 	beancount "github.com/drummonds/gts-beancount"
-	"github.com/odvcencio/gotreesitter"
 )
 
 type fileData struct {
-	Name        string
-	Source      string
-	Highlighted template.HTML
-	SExpr       string
-	OK          bool
+	Name               string
+	BeancountHighlight template.HTML
+	BeancountOK        bool
+	GolucaSource       string
+	GolucaHighlight    template.HTML
+	GolucaOK           bool
+	SExpr              string
 }
 
 // captureToClass maps tree-sitter capture names to CSS classes.
@@ -86,22 +88,19 @@ const tmpl = `<!DOCTYPE html>
   <h1 class="title">gts-beancount — Parser Demo</h1>
   {{range .}}
   <div class="box mb-5">
-    <h2 class="subtitle">
-      {{.Name}}
-      {{if .OK}}<span class="tag is-success">OK</span>{{else}}<span class="tag is-danger">ERRORS</span>{{end}}
-    </h2>
+    <h2 class="subtitle">{{.Name}}</h2>
     <div class="columns">
       <div class="column">
-        <h3 class="heading">Source</h3>
-        <pre>{{.Source}}</pre>
+        <h3 class="heading">Beancount {{if .BeancountOK}}<span class="tag is-success">OK</span>{{else}}<span class="tag is-danger">ERRORS</span>{{end}}</h3>
+        <pre>{{.BeancountHighlight}}</pre>
       </div>
       <div class="column">
-        <h3 class="heading">Highlighted</h3>
-        <pre>{{.Highlighted}}</pre>
+        <h3 class="heading">Goluca {{if .GolucaOK}}<span class="tag is-success">OK</span>{{else}}<span class="tag is-danger">ERRORS</span>{{end}}</h3>
+        <pre>{{.GolucaHighlight}}</pre>
       </div>
     </div>
     <details>
-      <summary>AST</summary>
+      <summary>AST (beancount)</summary>
       <pre>{{.SExpr}}</pre>
     </details>
   </div>
@@ -136,18 +135,38 @@ func main() {
 			os.Exit(1)
 		}
 
-		ranges, err := beancount.Highlight(src)
+		bcRanges, err := beancount.Highlight(src)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "highlight %s: %v\n", path, err)
 			os.Exit(1)
 		}
 
+		// Convert beancount to goluca
+		golucaSrc, err := beancount.Convert(src)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "convert %s: %v\n", path, err)
+			os.Exit(1)
+		}
+
+		golucaTree, err := beancount.GolucaParse(golucaSrc)
+		golucaOK := err == nil && golucaTree != nil && !golucaTree.RootNode().HasError()
+
+		var golucaHL template.HTML
+		golucaRanges, err := beancount.GolucaHighlight(golucaSrc)
+		if err == nil {
+			golucaHL = template.HTML(renderHTML(golucaSrc, golucaRanges))
+		} else {
+			golucaHL = template.HTML(html.EscapeString(string(golucaSrc)))
+		}
+
 		data = append(data, fileData{
-			Name:        filepath.Base(path),
-			Source:      html.EscapeString(string(stripped)),
-			Highlighted: template.HTML(renderHTML(stripped, ranges)),
-			SExpr:       beancount.SExpression(tree),
-			OK:          !beancount.HasErrors(tree),
+			Name:               filepath.Base(path),
+			BeancountHighlight: template.HTML(renderHTML(stripped, bcRanges)),
+			BeancountOK:        !beancount.HasErrors(tree),
+			GolucaSource:       string(golucaSrc),
+			GolucaHighlight:    golucaHL,
+			GolucaOK:           golucaOK,
+			SExpr:              beancount.SExpression(tree),
 		})
 	}
 

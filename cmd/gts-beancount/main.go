@@ -5,8 +5,8 @@ import (
 	"os"
 	"sort"
 
+	"github.com/drummonds/gotreesitter"
 	beancount "github.com/drummonds/gts-beancount"
-	"github.com/odvcencio/gotreesitter"
 )
 
 func main() {

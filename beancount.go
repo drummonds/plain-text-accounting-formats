@@ -8,8 +8,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/odvcencio/gotreesitter"
-	"github.com/odvcencio/gotreesitter/grammars"
+	"github.com/drummonds/gotreesitter"
+	"github.com/drummonds/gotreesitter/grammars"
 )
 
 var blankLine = []byte("\n\n")

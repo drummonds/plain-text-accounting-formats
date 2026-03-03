@@ -3,7 +3,7 @@ package beancount
 import (
 	"fmt"
 
-	"github.com/odvcencio/gotreesitter"
+	"github.com/drummonds/gotreesitter"
 )
 
 // HighlightQuery is the tree-sitter highlight query for beancount files.
