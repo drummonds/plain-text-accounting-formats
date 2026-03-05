@@ -6,7 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).## [0.1.1
 
  - Colouring syntax comparison this is what this is meant to show## [0.1.3] - 2026-03-03
 
- - Trying to update docs git hub pages
+ - Trying to update docs git hub pages## [0.1.5] - 2026-03-05
+
+ - Improved documentation and push to github pages
+
 ## [0.1.4] - 2026-03-05
 
  - Changing documentation
