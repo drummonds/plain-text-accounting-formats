@@ -36,23 +36,29 @@ tasks:
   build:
     desc: Build the CLI
     cmds:
-      - go build -o bin/gts-beancount ./cmd/gts-beancount
+      - go build -o bin/ptaf ./cmd/ptaf
 
   demo:
     desc: Run all CLI subcommands against test data
     deps: [build]
     cmds:
-      - echo "=== parse ===" && bin/gts-beancount parse testdata/simple.beancount
-      - echo "=== highlight ===" && bin/gts-beancount highlight testdata/simple.beancount
-      - echo "=== check ===" && bin/gts-beancount check testdata/simple.beancount
+      - echo "=== parse ===" && bin/ptaf parse testdata/simple.beancount
+      - echo "=== highlight ===" && bin/ptaf highlight testdata/simple.beancount
+      - echo "=== check ===" && bin/ptaf checkD testdata/simple.beancount
 
   docs:build:
-    desc: Generate HTML docs from testdata
+    desc: Generate multi-page HTML docs (index + per-format pages)
+    preconditions:
+      - sh: which tree-sitter2abnf
+        msg: "tree-sitter2abnf not found — go install github.com/drummonds/tree-sitter2abnf@latest"
+      - sh: which pta2svg
+        msg: "pta2svg not found — go install github.com/drummonds/pta2svg@latest"
+      - sh: test -d ../tree-sitter-beancount
+        msg: "missing ../tree-sitter-beancount — git clone https://github.com/polarmutex/tree-sitter-beancount"
+      - sh: test -d ../tree-sitter-goluca
+        msg: "missing ../tree-sitter-goluca"
+      - sh: test -d ../tree-sitter-pta
+        msg: "missing ../tree-sitter-pta"
     cmds:
       - go run ./cmd/docs
 
-  docs:serve:
-    desc: Build docs and serve locally
-    deps: [docs:build]
-    cmds:
-      - task-plus pages --dir docs

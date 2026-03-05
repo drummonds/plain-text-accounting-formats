@@ -34,3 +34,4 @@ docs/*.html
 # Editor/IDE
 .idea/
 .vscode/
+.claude/settings.json

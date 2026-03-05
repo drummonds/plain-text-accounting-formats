@@ -1,4 +1,4 @@
-module github.com/drummonds/gts-beancount
+module github.com/drummonds/plain-text-accounting-formats
 
 go 1.25.3
 

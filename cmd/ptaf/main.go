@@ -6,12 +6,12 @@ import (
 	"sort"
 
 	"github.com/drummonds/gotreesitter"
-	beancount "github.com/drummonds/gts-beancount"
+	beancount "github.com/drummonds/plain-text-accounting-formats"
 )
 
 func main() {
 	if len(os.Args) < 3 {
-		fmt.Fprintf(os.Stderr, "Usage: gts-beancount <parse|highlight|check|convert> <file>\n")
+		fmt.Fprintf(os.Stderr, "Usage: ptaf <parse|highlight|check|convert> <file>\n")
 		os.Exit(1)
 	}
 	cmd, path := os.Args[1], os.Args[2]
@@ -61,7 +61,7 @@ func main() {
 		fmt.Printf("%s: OK\n", path)
 
 	default:
-		fmt.Fprintf(os.Stderr, "Unknown command: %s\nUsage: gts-beancount <parse|highlight|check|convert> <file>\n", cmd)
+		fmt.Fprintf(os.Stderr, "Unknown command: %s\nUsage: ptaf <parse|highlight|check|convert> <file>\n", cmd)
 		os.Exit(1)
 	}
 }
