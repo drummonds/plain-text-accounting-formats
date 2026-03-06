@@ -66,7 +66,7 @@ const tmpl = `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
-<title>gts-beancount — Parser Demo</title>
+<title>Parser Demo — Plain Text Accounting Formats</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css">
 <style>
   pre { background: #1e1e2e; color: #cdd6f4; padding: 1rem; border-radius: 6px; overflow-x: auto; font-size: 0.85rem; }
@@ -85,7 +85,7 @@ const tmpl = `<!DOCTYPE html>
 <body>
 <section class="section">
 <div class="container">
-  <h1 class="title">gts-beancount — Parser Demo</h1>
+  <h1 class="title">Parser Demo — Plain Text Accounting Formats</h1>
   {{range .}}
   <div class="box mb-5">
     <h2 class="subtitle">{{.Name}}</h2>
@@ -176,7 +176,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	out, err := os.Create("docs/index.html")
+	out, err := os.Create("docs/demo.html")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "create: %v\n", err)
 		os.Exit(1)
@@ -188,5 +188,5 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("wrote docs/index.html")
+	fmt.Println("wrote docs/demo.html")
 }

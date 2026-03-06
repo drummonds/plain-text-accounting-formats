@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Beancount to go-luca Conversion - plain-text-accounting-formats</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <style>
+        pre {
+            background-color: #2b2b2b;
+            color: #f8f8f2;
+            padding: 1.25em 1.5em;
+            overflow-x: auto;
+        }
+        pre code {
+            color: inherit;
+            background: none;
+            padding: 0;
+            font-size: 0.875em;
+        }
+        code {
+            background-color: #f5f5f5;
+            color: #e83e8c;
+            padding: 0.125em 0.375em;
+            border-radius: 3px;
+        }
+        pre.mermaid {
+            background-color: #ffffff;
+            color: #333;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <section class="section">
+        <div class="container">
+            <nav class="breadcrumb" aria-label="breadcrumbs">
+                <ul>
+                    <li><a href="../index.html">plain-text-accounting-formats</a></li>
+                    <li class="is-active"><a href="#" aria-current="page">Internal Docs</a></li>
+                    <li class="is-active"><a href="#" aria-current="page">Beancount to go-luca Conversion</a></li>
+                </ul>
+            </nav>
+
+            <div class="content">
+                <h1 id="beancount-to-go-luca-conversion">Beancount to go-luca Conversion</h1>
+<h2 id="go-luca-abnf-summary">go-luca ABNF Summary</h2>
+<pre><code class="language-abnf">movement        = date SP flag LF indent from-account SP arrow SP to-account SP description SP amount SP commodity LF
+linked-movement = date SP flag LF 1*(indent movement-line LF)
+movement-line   = &quot;+&quot; SP from-account SP arrow SP to-account SP description SP amount SP commodity
+date            = 4DIGIT &quot;-&quot; 2DIGIT &quot;-&quot; 2DIGIT
+flag            = &quot;*&quot; / &quot;!&quot;
+arrow           = &quot;-&gt;&quot;
+account         = segment *(&quot;:&quot; segment)
+amount          = 1*DIGIT [&quot;.&quot; 1*DIGIT]
+commodity       = 1*ALPHA
+description     = DQUOTE *UTF8 DQUOTE
+</code></pre>
+<h2 id="mapping-table">Mapping Table</h2>
+<table>
+<thead>
+<tr>
+<th>Beancount</th>
+<th>go-luca</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>transaction</code> (2 postings)</td>
+<td><code>movement</code></td>
+<td>Phase 1</td>
+</tr>
+<tr>
+<td><code>transaction</code> (N postings)</td>
+<td><code>linked-movement</code></td>
+<td>Phase 2 (not yet implemented)</td>
+</tr>
+<tr>
+<td><code>*</code> flag</td>
+<td><code>*</code></td>
+<td>Direct mapping</td>
+</tr>
+<tr>
+<td><code>!</code> flag</td>
+<td><code>!</code></td>
+<td>Direct mapping</td>
+</tr>
+<tr>
+<td><code>&quot;payee&quot; &quot;narration&quot;</code></td>
+<td><code>&quot;payee — narration&quot;</code></td>
+<td>Combined into description</td>
+</tr>
+<tr>
+<td><code>&quot;narration&quot;</code></td>
+<td><code>&quot;narration&quot;</code></td>
+<td>Used as description</td>
+</tr>
+<tr>
+<td>Account names</td>
+<td>Account names</td>
+<td>Direct mapping</td>
+</tr>
+<tr>
+<td>Amount + commodity</td>
+<td>amount commodity</td>
+<td>Direct mapping</td>
+</tr>
+<tr>
+<td><code>open</code>, <code>close</code></td>
+<td>Dropped</td>
+<td>No account lifecycle</td>
+</tr>
+<tr>
+<td><code>balance</code>, <code>pad</code></td>
+<td>Dropped</td>
+<td>No assertions</td>
+</tr>
+<tr>
+<td><code>note</code>, <code>document</code>, <code>event</code>, <code>query</code>, <code>custom</code></td>
+<td>Dropped</td>
+<td>No metadata directives</td>
+</tr>
+<tr>
+<td><code>option</code>, <code>include</code>, <code>plugin</code></td>
+<td>Dropped</td>
+<td>No file-level config</td>
+</tr>
+<tr>
+<td><code>pushtag</code>/<code>poptag</code>, <code>pushmeta</code>/<code>popmeta</code></td>
+<td>Dropped</td>
+<td>No scoped metadata</td>
+</tr>
+<tr>
+<td><code>commodity</code></td>
+<td>Dropped</td>
+<td>No declarations</td>
+</tr>
+<tr>
+<td><code>price</code></td>
+<td>Dropped</td>
+<td>No price directives</td>
+</tr>
+<tr>
+<td>Tags <code>#tag</code>, links <code>^link</code></td>
+<td>Dropped</td>
+<td>No equivalent</td>
+</tr>
+<tr>
+<td>Posting metadata</td>
+<td>Dropped</td>
+<td>No equivalent</td>
+</tr>
+<tr>
+<td>Cost <code>{...}</code>, price <code>@ ...</code></td>
+<td>Dropped</td>
+<td>No equivalent</td>
+</tr>
+<tr>
+<td>Comments</td>
+<td>Dropped</td>
+<td>No comment syntax in ABNF</td>
+</tr>
+</tbody>
+</table>
+<h2 id="phase-1-2-posting-transaction-conversion">Phase 1: 2-Posting Transaction Conversion</h2>
+<p><strong>From/to determination:</strong></p>
+<ol>
+<li>Posting with positive explicit amount = <strong>to</strong> (receiving account)</li>
+<li>Posting with no amount or negative amount = <strong>from</strong> (source account)</li>
+<li>Both positive (edge case): first posting = to, second = from</li>
+</ol>
+<h3 id="example-auto-balanced">Example: Auto-balanced</h3>
+<pre><code class="language-beancount">2024-01-15 * &quot;Tesco&quot; &quot;Weekly groceries&quot;
+  Expenses:Groceries   45.50 GBP
+  Assets:Bank:Current
+</code></pre>
+<pre><code class="language-goluca">2024-01-15 *
+  Assets:Bank:Current -&gt; Expenses:Groceries &quot;Tesco — Weekly groceries&quot; 45.50 GBP
+</code></pre>
+<h3 id="example-both-explicit">Example: Both explicit</h3>
+<pre><code class="language-beancount">2024-11-01 * &quot;Complex Corp&quot; &quot;Full-featured transaction&quot;
+  Expenses:Food   100.00 GBP
+  Assets:Bank:Current  -100.00 GBP
+</code></pre>
+<pre><code class="language-goluca">2024-11-01 *
+  Assets:Bank:Current -&gt; Expenses:Food &quot;Complex Corp — Full-featured transaction&quot; 100.00 GBP
+</code></pre>
+<h2 id="phase-2-n-posting-transactions-future">Phase 2: N-Posting Transactions (Future)</h2>
+<p>Multi-posting transactions map to <code>linked-movement</code> with <code>+</code> continuation lines:</p>
+<pre><code class="language-beancount">2024-01-15 * &quot;Split dinner&quot;
+  Expenses:Food        30.00 GBP
+  Expenses:Drinks      15.00 GBP
+  Assets:Bank:Current -45.00 GBP
+</code></pre>
+<pre><code class="language-goluca">2024-01-15 *
+  + Assets:Bank:Current -&gt; Expenses:Food &quot;Split dinner&quot; 30.00 GBP
+  + Assets:Bank:Current -&gt; Expenses:Drinks &quot;Split dinner&quot; 15.00 GBP
+</code></pre>
+<h2 id="edge-cases">Edge Cases</h2>
+<ul>
+<li><strong>Auto-balanced postings</strong>: Missing amount inferred from the other posting's amount</li>
+<li><strong>Negative amounts</strong>: <code>-100.00 GBP</code> indicates the from-account; absolute value used in output</li>
+<li><strong>Arithmetic amounts</strong>: <code>100.00 + 50.00 GBP</code> — not supported in Phase 1, transaction skipped if encountered</li>
+</ul>
+
+            </div>
+        </div>
+    </section>
+</body>
+</html>

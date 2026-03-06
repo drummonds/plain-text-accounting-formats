@@ -1,8 +1,19 @@
-# gts-beancount
+# Plain Text Accounting Formats
 
-Exemplar Go project demonstrating [gotreesitter](https://github.com/odvcencio/gotreesitter) for parsing and syntax-highlighting [beancount](https://beancount.github.io/) files.
+Comparison of plain text accounting formats with [tree-sitter](https://tree-sitter.github.io/)
+parsing and syntax highlighting.
 
-Use this as a reference for building parsers for other plain-text formats.
+## Formats Covered
+
+- **Beancount** — transaction/posting model ([beancount.github.io](https://beancount.github.io/))
+- **Goluca** — directed movements with `->` arrows ([tree-sitter-goluca](https://github.com/drummonds/tree-sitter-goluca))
+- **PTA** — simplified directed movements ([tree-sitter-pta](https://github.com/drummonds/tree-sitter-pta))
+- **Coin** — Go ledger-cli implementation ([mkobetic/coin](https://github.com/mkobetic/coin))
+
+## Documentation
+
+Full format documentation with grammar definitions and examples:
+[docs/internal](docs/internal/index.md)
 
 ## Install
 
@@ -13,13 +24,8 @@ go install github.com/drummonds/gts-beancount/cmd/gts-beancount@latest
 ## CLI Usage
 
 ```bash
-# Print S-expression parse tree
 gts-beancount parse ledger.beancount
-
-# Print ANSI-colored output
 gts-beancount highlight ledger.beancount
-
-# Check for parse errors
 gts-beancount check ledger.beancount
 ```
 
@@ -28,25 +34,14 @@ gts-beancount check ledger.beancount
 ```go
 import beancount "github.com/drummonds/gts-beancount"
 
-// Parse source
 tree, err := beancount.Parse(src)
-
-// Parse file
-bt, err := beancount.ParseFile("ledger.beancount")
-
-// Highlight
 ranges, err := beancount.Highlight(src)
+golucaSrc, err := beancount.Convert(src)
 ```
 
-## Tests
+## Build & Test
 
 ```bash
-task check   # fmt + vet + test
-task test    # tests only
+task check       # fmt + vet + test
+task docs:build  # generate HTML docs
 ```
-
-## Adapting for Other Grammars
-
-1. Replace `grammars.BeancountLanguage()` with your target language
-2. Write a highlight query matching your grammar's node types
-3. Adjust the CLI and tests
