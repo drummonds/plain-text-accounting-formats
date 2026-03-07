@@ -9,6 +9,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).## [0.1.1
  - Trying to update docs git hub pages## [0.1.5] - 2026-03-05
 
  - Improved documentation and push to github pages
+## [0.1.6] - 2026-03-07
+
+ - Release prep
 
 ## [0.1.4] - 2026-03-05
 
