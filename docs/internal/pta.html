@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PTA (Plain Text Accounting) - plain-text-accounting-formats</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <style>
+        pre {
+            background-color: #2b2b2b;
+            color: #f8f8f2;
+            padding: 1.25em 1.5em;
+            overflow-x: auto;
+        }
+        pre code {
+            color: inherit;
+            background: none;
+            padding: 0;
+            font-size: 0.875em;
+        }
+        code {
+            background-color: #f5f5f5;
+            color: #e83e8c;
+            padding: 0.125em 0.375em;
+            border-radius: 3px;
+        }
+        pre.mermaid {
+            background-color: #ffffff;
+            color: #333;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <section class="section">
+        <div class="container">
+            <nav class="breadcrumb" aria-label="breadcrumbs">
+                <ul>
+                    <li><a href="../index.html">plain-text-accounting-formats</a></li>
+                    <li class="is-active"><a href="#" aria-current="page">Internal Docs</a></li>
+                    <li class="is-active"><a href="#" aria-current="page">PTA (Plain Text Accounting)</a></li>
+                </ul>
+            </nav>
+
+            <div class="content">
+                <h1 id="pta-plain-text-accounting">PTA (Plain Text Accounting)</h1>
+<p>PTA is a simplified plain text accounting format sharing goluca's directional
+movement model. It uses the same arrow operators and linked-movement syntax
+but with a lighter grammar.</p>
+<h2 id="source-of-truth">Source of Truth</h2>
+<ul>
+<li>Grammar: <a href="https://github.com/drummonds/tree-sitter-pta">tree-sitter-pta</a></li>
+</ul>
+<h2 id="abnf-summary">ABNF Summary</h2>
+<pre><code class="language-abnf">journal         = *(transaction / comment)
+transaction     = date SP flag [SP payee] LF
+                  1*(indent posting-leg LF)
+posting-leg     = [&quot;+&quot; SP] from-account SP arrow SP to-account
+                  SP description SP amount SP commodity
+date            = 4DIGIT &quot;-&quot; 2DIGIT &quot;-&quot; 2DIGIT
+flag            = &quot;*&quot; / &quot;!&quot;
+arrow           = &quot;-&gt;&quot; / &quot;//&quot; / &quot;&gt;&quot; / U+2192
+account         = segment *(&quot;:&quot; segment)
+amount          = [&quot;-&quot;] 1*DIGIT [&quot;.&quot; 1*DIGIT]
+commodity       = 1*UPPER
+description     = *UTF8          ; unquoted free text
+comment         = (&quot;#&quot; / &quot;;&quot;) *UTF8
+</code></pre>
+<h2 id="example">Example</h2>
+<pre><code class="language-pta"># Simple transaction
+2024-01-15 * Tesco
+  Assets:Bank:Current -&gt; Expenses:Groceries Weekly groceries 45.50 GBP
+
+# Linked transaction (split)
+2024-01-20 * Split dinner
+  + Assets:Bank:Current -&gt; Expenses:Food Food 30.00 GBP
+  + Assets:Bank:Current -&gt; Expenses:Drinks Drinks 15.00 GBP
+</code></pre>
+<h2 id="characteristics">Characteristics</h2>
+<ul>
+<li><strong>Directed movements</strong>: same <code>from -&gt; to</code> model as goluca</li>
+<li><strong>Unquoted descriptions</strong>: descriptions do not require quotes (unlike goluca)</li>
+<li><strong>Minimal syntax</strong>: no account declarations, metadata, or directives</li>
+<li><strong>Comments</strong>: <code>#</code> or <code>;</code> line comments</li>
+<li><strong>Same arrow operators</strong>: <code>-&gt;</code>, <code>//</code>, <code>&gt;</code>, Unicode arrow</li>
+</ul>
+<h2 id="comparison-with-goluca">Comparison with Goluca</h2>
+<p>PTA and goluca are closely related. The key differences:</p>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Goluca</th>
+<th>PTA</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Descriptions</td>
+<td>Quoted (<code>&quot;text&quot;</code>)</td>
+<td>Unquoted (free text)</td>
+</tr>
+<tr>
+<td>Grammar complexity</td>
+<td>51 parser states</td>
+<td>58 parser states</td>
+</tr>
+<tr>
+<td>Payee handling</td>
+<td>Free text on header</td>
+<td>Free text on header</td>
+</tr>
+</tbody>
+</table>
+<p>Both formats are intentionally simple, focusing purely on recording movements
+of money between accounts.</p>
+<h2 id="see-also">See Also</h2>
+<ul>
+<li><a href="../index.html">Format comparison</a></li>
+</ul>
+
+            </div>
+        </div>
+    </section>
+</body>
+</html>
