@@ -61,3 +61,12 @@ So this is linked to other sites:
     - https://github.com/drummonds/tree-sitter-pta
 - tree-sitter2abnf
 - bytestone discussion of formats
+
+## Links
+
+| | |
+|---|---|
+| Documentation | https://h3-pta-formats.statichost.page/ |
+| Source (Codeberg) | https://codeberg.org/hum3/plain-text-accounting-formats |
+| Mirror (GitHub) | https://github.com/drummonds/plain-text-accounting-formats |
+| Docs repo | https://codeberg.org/hum3/plain-text-accounting-formats-docs |
