@@ -201,17 +201,8 @@ Transactions use two or more posting legs with implicit balancing.
 See also: <a href="https://www.bytestone.uk/afp/plain-text-accounting/journalasplaintext/">Journal entries as plain text</a>,
 <a href="https://www.bytestone.uk/posts/abnf-and-plain-text-accounting/">ABNF and Plain Text Accounting</a>.`,
 	},
-	{
-		name:     "Goluca",
-		slug:     "goluca",
-		dir:      "../tree-sitter-goluca",
-		heading:  "Movement-based accounting format",
-		cardDesc: "Movement-based format using arrow notation to show flows between accounts.",
-		desc: `Goluca uses <em>movements</em> instead of traditional postings, inspired by Pacioli's Credit/Debit notation.
-Each movement transfers an amount between two accounts using arrow operators
-(<code>-&gt;</code>, <code>//</code>, <code>&gt;</code>), with linked movements grouped via the <code>+</code> prefix.
-See also: <a href="https://www.bytestone.uk/posts/abnf-and-plain-text-accounting/">ABNF and Plain Text Accounting</a>.`,
-	},
+	// Goluca is now sourced from docs/goluca.md via md2html.
+	// See docs/goluca.md for the goluca format documentation.
 	{
 		name:     "PTA",
 		slug:     "pta",
@@ -364,11 +355,77 @@ func writePage(tmplStr, path string, data any) error {
 
 // --- Main ---
 
+// highlightCodeBlocks reads an HTML file produced by md2html, finds
+// <pre><code class="language-X"> blocks, applies syntax highlighting
+// (tree-sitter for goluca; regex for abnf), injects the hl-* CSS,
+// and writes the file back.
+func highlightCodeBlocks(path string) error {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	content := string(data)
+
+	// Map of language class → highlighter function.
+	type hlFunc func(string) string
+	langs := map[string]hlFunc{
+		"language-abnf": func(src string) string {
+			return string(highlightText(src, abnfRules))
+		},
+		"language-goluca": func(src string) string {
+			return string(highlightWithTS(".goluca", src, nil))
+		},
+	}
+
+	re := regexp.MustCompile(`<pre><code class="(language-\w+)">([\s\S]*?)</code></pre>`)
+	changed := false
+	result := re.ReplaceAllStringFunc(content, func(match string) string {
+		m := re.FindStringSubmatch(match)
+		if len(m) < 3 {
+			return match
+		}
+		lang, body := m[1], m[2]
+		fn, ok := langs[lang]
+		if !ok {
+			return match
+		}
+		// Unescape HTML entities that goldmark produced.
+		body = strings.ReplaceAll(body, "&amp;", "&")
+		body = strings.ReplaceAll(body, "&lt;", "<")
+		body = strings.ReplaceAll(body, "&gt;", ">")
+		body = strings.ReplaceAll(body, "&quot;", `"`)
+		body = strings.ReplaceAll(body, "&#39;", "'")
+		changed = true
+		return "<pre>" + fn(body) + "</pre>"
+	})
+
+	if !changed {
+		return nil
+	}
+
+	// Inject hl-* CSS if not already present.
+	if !strings.Contains(result, ".hl-keyword") {
+		cssBlock := "<style>" + sharedCSS + "</style>\n</head>"
+		result = strings.Replace(result, "</head>", cssBlock, 1)
+	}
+
+	return os.WriteFile(path, []byte(result), 0o644)
+}
+
 func main() {
 	demos, err := buildDemos()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "demos: %v\n", err)
 		os.Exit(1)
+	}
+
+	// Post-process md2html-generated pages with syntax highlighting.
+	for _, page := range []string{"docs/goluca.html"} {
+		if err := highlightCodeBlocks(page); err != nil {
+			fmt.Fprintf(os.Stderr, "highlight %s: %v\n", page, err)
+			os.Exit(1)
+		}
+		fmt.Printf("highlighted %s\n", page)
 	}
 
 	// Generate demo.html (parser demo page)

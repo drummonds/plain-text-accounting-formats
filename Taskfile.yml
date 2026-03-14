@@ -59,11 +59,11 @@ tasks:
         msg: "missing ../tree-sitter-goluca"
       - sh: test -d ../tree-sitter-pta
         msg: "missing ../tree-sitter-pta"
+    cmds:
       - task-plus md2html --project "{{.PROJECT}}" --file docs/index.md --dst docs
+      - task-plus md2html --project "{{.PROJECT}}" --file docs/goluca.md --dst docs
       - task-plus md2html --project "{{.PROJECT}}" --file README.md --dst docs
       - task-plus md2html --project "{{.PROJECT}}" --file ROADMAP.md --dst docs
       - task-plus md2html --project "{{.PROJECT}}" --src docs/internal --dst docs/internal
-    cmds:
-      - task: docs:md
       - go run ./cmd/docs
 

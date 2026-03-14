@@ -35,4 +35,10 @@ docs/*.html
 .idea/
 .vscode/
 .claude/settings.json
+<<<<<<< HEAD
 .vscode/tasks.json
+=======
+
+# task plus
+.task/
+>>>>>>> task/WTcommodity
