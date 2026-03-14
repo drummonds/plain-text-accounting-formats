@@ -35,3 +35,4 @@ docs/*.html
 .idea/
 .vscode/
 .claude/settings.json
+.vscode/tasks.json
