@@ -35,3 +35,6 @@ docs/*.html
 .idea/
 .vscode/
 .claude/settings.json
+
+# task plus
+.task/
