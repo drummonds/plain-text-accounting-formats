@@ -10,7 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).## [0.1.1
 
  - Improved documentation and push to github pages## [0.1.7] - 2026-03-09
 
- - Separate documentation site
+ - Separate documentation site## [0.1.9] - 2026-03-14
+
+ - Updating docs
+
 ## [0.1.8] - 2026-03-14
 
  - Just rebasing
