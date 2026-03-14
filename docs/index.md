@@ -1,11 +1,16 @@
-# Plain Text Accounting Formats
+# Plain Text Accounting Formats — Documentation
 
-This project compares plain text accounting (PTA) formats, each with a
+<div class="columns">
+<div class="column is-3">
+
+<!-- auto:pages -->
+<!-- /auto:pages -->
+
+</div>
+<div class="column is-9">
+
+Comparison of plain text accounting (PTA) formats, each with a
 [tree-sitter](https://tree-sitter.github.io/) grammar for parsing and syntax highlighting.
-
-- [README](README.html) — project overview, install, CLI and library usage
-- [ROADMAP](ROADMAP.html) — what's done and what's next
-- [Parser demo](demo.html) — side-by-side syntax-highlighted output from tree-sitter grammars
 
 ## The Formats
 
@@ -122,10 +127,17 @@ on bytestone.uk.
 | Repo | Purpose |
 |------|---------|
 | [plain-text-accounting-formats](https://github.com/drummonds/plain-text-accounting-formats) | Go library and CLI for parsing/highlighting/converting PTA formats |
-| [plain-text-accounting-formats-docs](https://github.com/drummonds/plain-text-accounting-formats-docs) | This documentation site |
 | [gotreesitter](https://github.com/drummonds/gotreesitter) | Pure-Go tree-sitter runtime (206 embedded grammars) |
 | [tree-sitter-goluca](https://github.com/drummonds/tree-sitter-goluca) | Tree-sitter grammar for the Goluca format |
 | [tree-sitter-pta](https://github.com/drummonds/tree-sitter-pta) | Tree-sitter grammar for the PTA format |
 | [tree-sitter-beancount](https://github.com/polarmutex/tree-sitter-beancount) | Tree-sitter grammar for Beancount (upstream: polarmutex) |
 | [tree-sitter2abnf](https://github.com/drummonds/tree-sitter2abnf) | Converts grammar.json to ABNF and back |
 | [pta2svg](https://github.com/drummonds/pta2svg) | Renders Goluca/PTA movements as SVG flow diagrams |
+
+## Links
+
+<!-- auto:links -->
+<!-- /auto:links -->
+
+</div>
+</div>
