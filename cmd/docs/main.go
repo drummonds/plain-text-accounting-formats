@@ -47,14 +47,18 @@ type demoData struct {
 var captureToClass = map[string]string{
 	"keyword":          "hl-keyword",
 	"string":           "hl-string",
+	"string.special":   "hl-string",
 	"number":           "hl-number",
 	"constant":         "hl-constant",
 	"constant.builtin": "hl-constant",
 	"type":             "hl-type",
+	"type.builtin":     "hl-type",
 	"tag":              "hl-tag",
 	"attribute":        "hl-attribute",
 	"comment":          "hl-comment",
 	"operator":         "hl-operator",
+	"variable":         "hl-tag",
+	"property":         "hl-attribute",
 }
 
 func renderHTML(src []byte, ranges []gotreesitter.HighlightRange) string {
@@ -167,15 +171,7 @@ var jsRules = []hlRule{
 	{regexp.MustCompile(`\b\d+(?:\.\d+)?\b`), "hl-number"},
 }
 
-var abnfRules = []hlRule{
-	{regexp.MustCompile(`(?m)^;[^\n]*`), "hl-comment"},
-	{regexp.MustCompile(`"(?:[^"\\]|\\.)*"`), "hl-string"},
-	{regexp.MustCompile(`@\w+`), "hl-keyword"},
-	{regexp.MustCompile(`%s`), "hl-constant"},
-	{regexp.MustCompile(`(?m)^[a-zA-Z_][a-zA-Z0-9_-]*`), "hl-type"},
-	{regexp.MustCompile(`[=/]`), "hl-operator"},
-	{regexp.MustCompile(`\d+\*\d*|\*\d+|\*`), "hl-number"},
-}
+
 
 // --- Format definitions ---
 
@@ -382,7 +378,7 @@ func highlightCodeBlocks(path string) error {
 	type hlFunc func(string) string
 	langs := map[string]hlFunc{
 		"language-abnf": func(src string) string {
-			return string(highlightText(src, abnfRules))
+			return string(highlightWithTS(".abnf", src, nil))
 		},
 		"language-goluca": func(src string) string {
 			return string(highlightWithTS(".goluca", src, nil))
@@ -460,7 +456,7 @@ func main() {
 			CardDesc:    g.cardDesc,
 			GrammarJS:   highlightWithTS(".js", js, jsRules),
 			GrammarJSON: highlightWithTS(".json", jsonStr, nil),
-			ABNF:        highlightText(abnf, abnfRules),
+			ABNF:        highlightWithTS(".abnf", abnf, nil),
 			RoundTrip:   highlightWithTS(".json", rt, nil),
 		}
 		if g.slug == "beancount" {

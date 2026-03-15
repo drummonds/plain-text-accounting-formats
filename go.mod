@@ -2,4 +2,4 @@ module github.com/drummonds/plain-text-accounting-formats
 
 go 1.25.3
 
-require github.com/drummonds/gotreesitter v0.5.4
+require github.com/drummonds/gotreesitter v0.6.3

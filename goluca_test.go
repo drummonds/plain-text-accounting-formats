@@ -40,7 +40,7 @@ func TestGolucaHighlight(t *testing.T) {
 	for _, r := range ranges {
 		captures[r.Capture] = true
 	}
-	for _, want := range []string{"constant", "keyword", "type", "string", "number"} {
+	for _, want := range []string{"constant", "keyword", "operator", "string", "number"} {
 		if !captures[want] {
 			t.Errorf("missing capture type %q", want)
 		}

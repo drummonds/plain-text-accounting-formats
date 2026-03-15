@@ -111,9 +111,8 @@ See the individual format pages for full definitions.
 See [ABNF Standards and Extensions](abnf-variants.html) for details on the
 ABNF variants and tree-sitter extensions used in these grammars.
 
-ABNF highlighting in the docs uses regex-based rules (not a tree-sitter grammar).
-[gotreesitter](https://github.com/drummonds/gotreesitter) includes a tree-sitter
-grammar for EBNF but not ABNF.
+ABNF highlighting in the docs uses a tree-sitter grammar from
+[gotreesitter](https://github.com/drummonds/gotreesitter).
 
 For background on ABNF in accounting contexts, see
 [ABNF and Plain Text Accounting](https://www.bytestone.uk/posts/abnf-and-plain-text-accounting/)
