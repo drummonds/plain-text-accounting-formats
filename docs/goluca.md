@@ -7,7 +7,8 @@ Credit/Debit notation. Each movement transfers an amount between two accounts
 using arrow operators (`->`, `//`, `>`), with linked movements grouped via the
 `+` prefix.
 
-See also: [ABNF and Plain Text Accounting](https://www.bytestone.uk/posts/abnf-and-plain-text-accounting/).
+See also: [ABNF and Plain Text Accounting](https://www.bytestone.uk/posts/abnf-and-plain-text-accounting/)
+and [ABNF syntax comparison](https://www.bytestone.uk/posts/abnf/).
 
 ## ABNF Grammar (proposed)
 
