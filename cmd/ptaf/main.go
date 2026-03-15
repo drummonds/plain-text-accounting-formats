@@ -29,7 +29,7 @@ func main() {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
-		os.Stdout.Write(out)
+		_, _ = os.Stdout.Write(out)
 
 	case "parse":
 		tree, err := beancount.Parse(src)
@@ -92,7 +92,7 @@ func printANSI(src []byte, ranges []gotreesitter.HighlightRange) {
 	for _, r := range ranges {
 		// Print unhighlighted gap
 		if r.StartByte > pos {
-			os.Stdout.Write(src[pos:r.StartByte])
+			_, _ = os.Stdout.Write(src[pos:r.StartByte])
 		}
 		// Print highlighted range
 		color, ok := ansiColors[r.Capture]
@@ -100,17 +100,17 @@ func printANSI(src []byte, ranges []gotreesitter.HighlightRange) {
 			color = ""
 		}
 		if color != "" {
-			os.Stdout.WriteString(color)
+			_, _ = os.Stdout.WriteString(color)
 		}
-		os.Stdout.Write(src[r.StartByte:r.EndByte])
+		_, _ = os.Stdout.Write(src[r.StartByte:r.EndByte])
 		if color != "" {
-			os.Stdout.WriteString(ansiReset)
+			_, _ = os.Stdout.WriteString(ansiReset)
 		}
 		pos = r.EndByte
 	}
 	// Print remaining
 	if pos < uint32(len(src)) {
-		os.Stdout.Write(src[pos:])
+		_, _ = os.Stdout.Write(src[pos:])
 	}
 }
 
