@@ -14,7 +14,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).## [0.1.1
 
  - Updating docs## [0.1.11] - 2026-03-15
 
- - lint rules fix
+ - lint rules fix## [0.1.13] - 2026-03-15
+
+ - Update to new formatter
+
 ## [0.1.12] - 2026-03-15
 
  - extending go-luca
