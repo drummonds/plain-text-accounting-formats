@@ -7,14 +7,59 @@ Credit/Debit notation. Each movement transfers an amount between two accounts
 using arrow operators (`->`, `//`, `>`), with linked movements grouped via the
 `+` prefix.
 
-See also: [ABNF and Plain Text Accounting](https://www.bytestone.uk/posts/abnf-and-plain-text-accounting/)
-and [ABNF syntax comparison](https://www.bytestone.uk/posts/abnf/).
+See also: [ABNF and Plain Text Accounting](https://www.bytestone.uk/posts/abnf-and-plain-text-accounting/),
+[ABNF syntax comparison](https://www.bytestone.uk/posts/abnf/),
+and [ABNF Standards and Extensions](abnf-variants.html) for details on
+the non-standard constructs used in the grammars below.
+
+## Journals and Source Files
+
+The *books of account* are the totality of an entity's accounting
+records. Within them, the *journal* is the chronological record of
+movements — it is the source of truth and, in a modern PTA system, has
+a plain text format (the source files). The *ledger* is the same data
+reorganised by account, holding only one side of each movement; each
+journal entry produces two ledger entries. The ledger is derived from
+the journal, not stored independently.
+
+A journal covers a single accounting period (e.g. a financial year)
+and may be stored across one or more source files.
+
+### Period linkage
+
+Successive journals need a mechanism to link together so the full
+history forms an auditable chain. Pacioli numbered his journals
+sequentially, marking the first with a cross (✠). Goluca could adopt a
+similar scheme — an explicit period declaration with a sequence number
+and a reference to the prior period.
+
+### Integrity via Merkle trees
+
+To guarantee that a collection of journals has not been tampered with,
+each period's closing state could include a cryptographic hash of its
+contents. Chaining these hashes (as in a Merkle tree) would let anyone
+verify the integrity of the entire ledger history from a single root
+hash.
+
+### Open questions
+
+- Syntax for declaring a period and its sequence number.
+- Whether the hash covers the raw source text or a canonical
+  serialisation.
+- How opening balances reference the prior period's closing hash.
+- Whether sub-files within a period (e.g. monthly splits) also
+  participate in the hash chain.
+
+Details to be worked out.
 
 ## ABNF Grammar (proposed)
 
 This extends the auto-generated grammar from `grammar.js` via
 [tree-sitter2abnf](https://github.com/drummonds/tree-sitter2abnf)
-with new directives for commodities, accounts, customers, and configuration.
+with new directives for commodities, accounts, customers, configuration,
+and full datetime support.
+See [Goluca Datetime Formats](goluca-datetime.html) for details on
+the datetime design and its relationship to ISO 8601 / RFC 3339.
 
 ```abnf
 ; @grammar "goluca"
@@ -24,11 +69,11 @@ source_file = *((directive / transaction / comment / %s"\n"))
 
 ; --- Directives ---
 
-directive = commodity_directive / open_directive / option_directive / alias_directive / customer_directive
+directive = commodity_directive / open_directive / option_directive / alias_directive / customer_directive / data_point
 
-commodity_directive = [date _sp] %s"commodity" _sp commodity %s"\n" *metadata_line
+commodity_directive = [datetime _sp] %s"commodity" _sp commodity %s"\n" *metadata_line
 
-open_directive = date _sp %s"open" _sp account [_sp commodity_list] %s"\n" *metadata_line
+open_directive = datetime _sp %s"open" _sp account [_sp commodity_list] %s"\n" *metadata_line
 
 option_directive = %s"option" _sp option_key _sp option_value %s"\n"
 
@@ -40,7 +85,7 @@ customer_directive = %s"customer" _sp customer_name %s"\n" 1*customer_property
 
 transaction = header 1*movement
 
-header = date [knowledge_date] _sp flag [_sp payee] %s"\n"
+header = datetime [knowledge_datetime] _sp flag [_sp payee] %s"\n"
 
 movement = _sp [linked_prefix] @field(from) account _sp arrow _sp @field(to) account [_sp description] _sp amount _sp commodity %s"\n"
 
@@ -54,6 +99,16 @@ customer_account = %s"account" _sp account %s"\n"
 
 customer_constraint = %s"max-aggregate-balance" _sp amount _sp commodity %s"\n"
 
+; --- Data Points (see goluca-parameters.html) ---
+
+data_point = datetime [knowledge_datetime] %s"data" _sp param_name _sp param_value [_sp comment] %s"\n"
+
+param_name = name_part *(%s":" name_part)
+
+name_part = @pattern("[a-zA-Z][a-zA-Z0-9_-]*")
+
+param_value = @pattern("[^\\n;]+")
+
 ; --- Tokens ---
 
 comment = @token(@pattern("[#;]") @pattern("[^\\n]*"))
@@ -62,9 +117,19 @@ _sp = @pattern(" +")
 
 _indent = @pattern("  ")
 
+datetime = date [%s"T" time timezone]
+
 date = @pattern("\\d{4}-\\d{2}-\\d{2}")
 
-knowledge_date = %s"%" date
+time = @pattern("\\d{2}:\\d{2}:\\d{2}") [fractional]
+
+fractional = %s"." @pattern("\\d{1,6}")
+
+timezone = %s"Z" / tz_offset
+
+tz_offset = (%s"+" / %s"-") @pattern("\\d{2}:\\d{2}")
+
+knowledge_datetime = %s"%" datetime
 
 flag = (%s"*" / %s"!")
 
@@ -72,7 +137,7 @@ payee = @pattern("[^\\n]+")
 
 linked_prefix = %s"+"
 
-account = @pattern("[A-Z][a-zA-Z0-9]*(:[A-Za-z0-9][a-zA-Z0-9-]*)+")
+account = @pattern("[A-Za-z0-9][a-zA-Z0-9]*(:[A-Za-z0-9][a-zA-Z0-9-]*)+")
 
 arrow = (%s"->" / %s"//" / %s"→" / %s">")
 
@@ -95,6 +160,52 @@ customer_name = @pattern("\"[^\"]*\"")
 metadata_key = @pattern("[a-z][a-z-]*")
 
 metadata_value = @pattern("[^\\n]+")
+```
+
+## ABNF Grammar (current goluca)
+
+Derived from the current
+[tree-sitter-goluca](https://github.com/drummonds/tree-sitter-goluca)
+`grammar.js`. This is what the parser actually implements today — no
+directives, no knowledge dates, no metadata.
+
+```abnf
+; @grammar "goluca"
+; @extras (@pattern("\\r"))
+
+source_file = *((transaction / comment / %s"\n"))
+
+; --- Transactions ---
+
+transaction = header 1*movement
+
+header = date _sp flag [_sp payee] %s"\n"
+
+movement = _sp [linked_prefix] @field(from) account _sp arrow _sp @field(to) account [_sp description] _sp amount _sp commodity %s"\n"
+
+; --- Tokens ---
+
+comment = @token(@pattern("[#;]") @pattern("[^\\n]*"))
+
+_sp = @pattern(" +")
+
+date = @pattern("\\d{4}-\\d{2}-\\d{2}")
+
+flag = (%s"*" / %s"!")
+
+payee = @pattern("[^\\n]+")
+
+linked_prefix = %s"+"
+
+account = @pattern("[A-Z][a-zA-Z0-9]*(:[A-Za-z0-9][a-zA-Z0-9-]*)+")
+
+arrow = (%s"->" / %s"//" / %s"→" / %s">")
+
+description = @pattern("\"[^\"]*\"")
+
+amount = @pattern("-?[0-9][0-9,]*(\\.[0-9]+)?")
+
+commodity = @token(@prec(1) @pattern("[A-Z][A-Z]+"))
 ```
 
 ## ABNF Grammar (bytestone.uk)
@@ -144,8 +255,8 @@ commodity = 1*ALPHA
 | Balancing | No implicit balancing; each movement is self-contained |
 | Linked movements | `+` prefix groups multiple movements under one header |
 | Arrow operators | `->` (transfer), `//` (split/fee), `>` (shorthand) |
-| Accounts | Colon-separated hierarchy, must start with uppercase |
-| Commodities | Uppercase alpha, at least two characters (e.g. `GBP`, `USD`) |
+| Accounts | Colon-separated hierarchy, any root name — see [accounts](goluca-accounts.html) |
+| Commodities | Uppercase alpha, 2+ chars; must be declared with scaling — see [accounts](goluca-accounts.html#commodities) |
 | Dates | ISO 8601 (`YYYY-MM-DD`) |
 | Flags | `*` (cleared) or `!` (pending) |
 | Comments | Lines starting with `#` or `;` |
@@ -157,6 +268,7 @@ commodity = 1*ALPHA
 | Aliases | `alias ShortName Full:Account:Path` for shorthand references |
 | Customers | `customer "Name"` with account links and constraints |
 | Metadata | Indented `key: value` lines on directives and open statements |
+| Data points | Time-stamped named parameters — see [parameters](goluca-parameters.html) |
 | Hierarchical params | Metadata on parent `open` cascades to child accounts |
 
 ### Example

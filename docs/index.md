@@ -17,7 +17,7 @@ Comparison of plain text accounting (PTA) formats, each with a
 | Format | Style | Details |
 |--------|-------|---------|
 | [Beancount](beancount.html) | Transaction with postings (debit/credit implicit) | [overview](internal/beancount.html), [beancount.github.io](https://beancount.github.io/) |
-| [Goluca](goluca.html) | Directed movements with `->` arrows | [overview](internal/goluca.html), [tree-sitter-goluca](https://github.com/drummonds/tree-sitter-goluca) |
+| [Goluca](goluca.html) | Directed movements with `->` arrows | [overview](internal/goluca.html), [accounts](goluca-accounts.html), [datetime](goluca-datetime.html), [parameters](goluca-parameters.html), [tree-sitter-goluca](https://github.com/drummonds/tree-sitter-goluca) |
 | [PTA](pta.html) | Directed movements (goluca-compatible, simplified) | [overview](internal/pta.html), [tree-sitter-pta](https://github.com/drummonds/tree-sitter-pta) |
 | [Coin](internal/coin.html) | Ledger-cli model in Go | [mkobetic/coin](https://github.com/mkobetic/coin) |
 
@@ -107,6 +107,9 @@ Each format has a formal grammar defined in ABNF, generated from the
 tree-sitter `grammar.json` by
 [tree-sitter2abnf](https://github.com/drummonds/tree-sitter2abnf).
 See the individual format pages for full definitions.
+
+See [ABNF Standards and Extensions](abnf-variants.html) for details on the
+ABNF variants and tree-sitter extensions used in these grammars.
 
 ABNF highlighting in the docs uses regex-based rules (not a tree-sitter grammar).
 [gotreesitter](https://github.com/drummonds/gotreesitter) includes a tree-sitter
