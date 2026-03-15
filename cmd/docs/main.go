@@ -245,9 +245,13 @@ func runABNF(dir string) (abnf, roundTrip string) {
 	if err != nil {
 		return abnf, fmt.Sprintf("Error: %v", err)
 	}
-	defer os.Remove(tmp.Name())
-	tmp.WriteString(abnf)
-	tmp.Close()
+	defer func() { _ = os.Remove(tmp.Name()) }()
+	if _, err := tmp.WriteString(abnf); err != nil {
+		return abnf, fmt.Sprintf("Error: %v", err)
+	}
+	if err := tmp.Close(); err != nil {
+		return abnf, fmt.Sprintf("Error: %v", err)
+	}
 
 	cmd2 := exec.Command("tree-sitter2abnf", tmp.Name())
 	var buf2 bytes.Buffer
@@ -265,9 +269,13 @@ func generateSVG(golucaSrc []byte) (template.HTML, error) {
 	if err != nil {
 		return "", err
 	}
-	defer os.Remove(tmp.Name())
-	tmp.Write(golucaSrc)
-	tmp.Close()
+	defer func() { _ = os.Remove(tmp.Name()) }()
+	if _, err := tmp.Write(golucaSrc); err != nil {
+		return "", err
+	}
+	if err := tmp.Close(); err != nil {
+		return "", err
+	}
 
 	cmd := exec.Command("pta2svg", tmp.Name())
 	var svgBuf, errBuf bytes.Buffer
@@ -349,8 +357,12 @@ func writePage(tmplStr, path string, data any) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
-	return t.Execute(f, data)
+	execErr := t.Execute(f, data)
+	closeErr := f.Close()
+	if execErr != nil {
+		return execErr
+	}
+	return closeErr
 }
 
 // --- Main ---
