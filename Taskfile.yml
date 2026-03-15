@@ -52,6 +52,11 @@ tasks:
       - echo "=== highlight ===" && bin/ptaf highlight testdata/simple.beancount
       - echo "=== check ===" && bin/ptaf checkD testdata/simple.beancount
 
+  post:release:
+    desc: Deploy docs after release
+    cmds:
+      - task-plus pages deploy
+
   docs:build:
     desc: Generate multi-page HTML docs (index + per-format pages)
     preconditions:
