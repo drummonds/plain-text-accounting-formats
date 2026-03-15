@@ -19,5 +19,10 @@
             "titleBar.inactiveBackground": "#ee994499",
             "titleBar.inactiveForeground": "#15202b99"
         }
-    }
+    },
+    "folders": [
+        {
+            "path": "../../../plain-text-accounting-formats-WTlint"
+        }
+    ]
 }
