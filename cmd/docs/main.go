@@ -171,8 +171,6 @@ var jsRules = []hlRule{
 	{regexp.MustCompile(`\b\d+(?:\.\d+)?\b`), "hl-number"},
 }
 
-
-
 // --- Format definitions ---
 
 type grammarDef struct {
