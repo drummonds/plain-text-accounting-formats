@@ -359,6 +359,29 @@ func writePage(tmplStr, path string, data any) error {
 	return closeErr
 }
 
+// injectGolucaABNF runs tree-sitter2abnf on the goluca grammar and
+// replaces marker comments in the HTML with the highlighted output.
+func injectGolucaABNF(path string) error {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	content := string(data)
+
+	golucaDir := "../tree-sitter-goluca"
+	abnf, roundTrip := runABNF(golucaDir)
+
+	abnfHTML := "<pre>" + string(highlightWithTS(".abnf", abnf, nil)) + "</pre>"
+	content = strings.Replace(content, "<!-- GENERATED:GOLUCA_ABNF -->", abnfHTML, 1)
+
+	rtHTML := `<details><summary>ABNF → JSON round-trip</summary><pre>` +
+		string(highlightWithTS(".json", roundTrip, nil)) +
+		`</pre></details>`
+	content = strings.Replace(content, "<!-- GENERATED:GOLUCA_ROUNDTRIP -->", rtHTML, 1)
+
+	return os.WriteFile(path, []byte(content), 0o644)
+}
+
 // --- Main ---
 
 // highlightCodeBlocks reads an HTML file produced by md2html, finds
@@ -433,6 +456,13 @@ func main() {
 		}
 		fmt.Printf("highlighted %s\n", page)
 	}
+
+	// Inject auto-generated ABNF into goluca.html.
+	if err := injectGolucaABNF("docs/goluca.html"); err != nil {
+		fmt.Fprintf(os.Stderr, "goluca abnf: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Println("injected goluca ABNF")
 
 	// Generate demo.html (parser demo page)
 	if err := writePage(demoTmpl, "docs/demo.html", demos); err != nil {
