@@ -16,7 +16,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).## [0.1.1
 
  - lint rules fix## [0.1.13] - 2026-03-15
 
- - Update to new formatter
+ - Update to new formatter## [0.1.15] - 2026-03-18
+
+ - emitting hyphens rather than underscores
+
 ## [0.1.14] - 2026-03-17
 
  - updating docs for fresh grammar
