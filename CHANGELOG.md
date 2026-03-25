@@ -19,6 +19,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).## [0.1.1
  - Update to new formatter## [0.1.15] - 2026-03-18
 
  - emitting hyphens rather than underscores
+## [0.1.16] - 2026-03-25
+
+ - Updating highlighting
 
 ## [0.1.14] - 2026-03-17
 
