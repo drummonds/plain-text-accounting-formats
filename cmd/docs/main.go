@@ -12,8 +12,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/drummonds/gotreesitter"
-	"github.com/drummonds/gotreesitter/grammars"
+	"codeberg.org/hum3/gotreesitter"
+	"codeberg.org/hum3/gotreesitter/grammars"
 	beancount "github.com/drummonds/plain-text-accounting-formats"
 )
 
@@ -371,7 +371,7 @@ func injectGolucaABNF(path string) error {
 	golucaDir := "../tree-sitter-goluca"
 	abnf, roundTrip := runABNF(golucaDir)
 
-	abnfHTML := "<pre>" + string(highlightWithTS(".abnf", abnf, nil)) + "</pre>"
+	abnfHTML := "<pre>" + string(highlightWithTS(".yabnf", abnf, nil)) + "</pre>"
 	content = strings.Replace(content, "<!-- GENERATED:GOLUCA_ABNF -->", abnfHTML, 1)
 
 	rtHTML := `<details><summary>ABNF → JSON round-trip</summary><pre>` +
@@ -399,7 +399,7 @@ func highlightCodeBlocks(path string) error {
 	type hlFunc func(string) string
 	langs := map[string]hlFunc{
 		"language-abnf": func(src string) string {
-			return string(highlightWithTS(".abnf", src, nil))
+			return string(highlightWithTS(".yabnf", src, nil))
 		},
 		"language-goluca": func(src string) string {
 			return string(highlightWithTS(".goluca", src, nil))

@@ -3,7 +3,7 @@ package beancount
 import (
 	"fmt"
 
-	"github.com/drummonds/gotreesitter"
+	"codeberg.org/hum3/gotreesitter"
 )
 
 // Highlight parses beancount source and returns highlight ranges.

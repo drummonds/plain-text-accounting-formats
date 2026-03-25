@@ -5,7 +5,7 @@ import (
 	"os"
 	"sort"
 
-	"github.com/drummonds/gotreesitter"
+	"codeberg.org/hum3/gotreesitter"
 	beancount "github.com/drummonds/plain-text-accounting-formats"
 )
 
