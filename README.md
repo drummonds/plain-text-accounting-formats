@@ -19,7 +19,7 @@ Full format documentation with grammar definitions and examples:
 
 
 ```bash
-go install github.com/drummonds/plain-text-accounting-formats/cmd/ptaf@latest
+go install codeberg.org/hum3/plain-text-accounting-formats/cmd/ptaf@latest
 ```
 
 ## CLI Usage
@@ -33,7 +33,7 @@ gts-beancount check ledger.beancount
 ## Library Usage
 
 ```go
-import ptaf "github.com/drummonds/plain-text-accounting-formats"
+import ptaf "codeberg.org/hum3/plain-text-accounting-formats"
 
 tree, err := beancount.Parse(src)
 ranges, err := beancount.Highlight(src)
@@ -69,4 +69,3 @@ So this is linked to other sites:
 | Documentation | https://h3-pta-formats.statichost.page/ |
 | Source (Codeberg) | https://codeberg.org/hum3/plain-text-accounting-formats |
 | Mirror (GitHub) | https://github.com/drummonds/plain-text-accounting-formats |
-| Docs repo | https://codeberg.org/hum3/plain-text-accounting-formats-docs |

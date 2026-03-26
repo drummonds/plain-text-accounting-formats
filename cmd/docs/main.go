@@ -14,7 +14,7 @@ import (
 
 	"codeberg.org/hum3/gotreesitter"
 	"codeberg.org/hum3/gotreesitter/grammars"
-	beancount "github.com/drummonds/plain-text-accounting-formats"
+	beancount "codeberg.org/hum3/plain-text-accounting-formats"
 )
 
 // --- Types ---

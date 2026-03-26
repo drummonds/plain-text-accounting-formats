@@ -1,4 +1,4 @@
-module github.com/drummonds/plain-text-accounting-formats
+module codeberg.org/hum3/plain-text-accounting-formats
 
 go 1.25.3
 

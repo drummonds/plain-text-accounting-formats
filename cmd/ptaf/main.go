@@ -6,7 +6,7 @@ import (
 	"sort"
 
 	"codeberg.org/hum3/gotreesitter"
-	beancount "github.com/drummonds/plain-text-accounting-formats"
+	beancount "codeberg.org/hum3/plain-text-accounting-formats"
 )
 
 func main() {
