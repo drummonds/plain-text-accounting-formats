@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Repeating Transactions in Plain Text Accounting - plain-text-accounting-formats</title>
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <style>
+        pre {
+            background-color: #2b2b2b;
+            color: #f8f8f2;
+            padding: 1.25em 1.5em;
+            overflow-x: auto;
+        }
+        pre code {
+            color: inherit;
+            background: none;
+            padding: 0;
+            font-size: 0.875em;
+        }
+        code {
+            background-color: #f5f5f5;
+            color: #e83e8c;
+            padding: 0.125em 0.375em;
+            border-radius: 3px;
+        }
+        pre.mermaid {
+            background-color: #ffffff;
+            color: #333;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar is-primary">
+        <div class="navbar-brand">
+            <a class="navbar-item has-text-weight-bold" href="../index.html">plain-text-accounting-formats</a>
+        </div>
+    </nav>
+    <section class="section">
+        <div class="container">
+            <nav class="breadcrumb" aria-label="breadcrumbs">
+                <ul>
+                    <li class="is-active"><a href="#" aria-current="page">Internal Docs</a></li>
+                    <li class="is-active"><a href="#" aria-current="page">Repeating Transactions in Plain Text Accounting</a></li>
+                </ul>
+            </nav>
+
+            <div class="content">
+                <h1 id="repeating-transactions-in-plain-text-accounting">Repeating Transactions in Plain Text Accounting</h1>
+<p>Research into how PTA formats handle repeating transactions, and how
+this intersects with human readability and information density.</p>
+<h2 id="motivation">Motivation</h2>
+<p>When creating test banking products it is natural to say &quot;repeat this
+exact movement 28 times&quot; rather than writing out 28 identical
+transactions with incrementing dates. This is a count-based repetition
+— distinct from calendar-driven recurrence (&quot;every month&quot;) that most
+PTA tools focus on.</p>
+<p>The question: how should a PTA format express repetition, and what are
+the trade-offs between compactness and explicitness?</p>
+<h2 id="survey-of-existing-formats">Survey of Existing Formats</h2>
+<h3 id="ledger-cli">Ledger-cli</h3>
+<p>Ledger has two related features:</p>
+<p><strong>Periodic transactions</strong> use a <code>~</code> prefix with a period expression.
+These define budget amounts, not real transactions:</p>
+<pre><code class="language-ledger">~ Monthly
+  Expenses:Rent         $2000.00
+  Assets:Bank:Checking
+</code></pre>
+<p><strong>Automated transactions</strong> use a <code>=</code> prefix and pattern-match against
+other transactions to add postings:</p>
+<pre><code class="language-ledger">= /Groceries/
+  Budget:Food          -1.0
+  Budget:Food:Unspent
+</code></pre>
+<p>Neither generates actual journal entries. Ledger is a reporting tool —
+it never modifies the journal file. External tools like
+<a href="https://github.com/scarpent/ledgerbil">ledgerbil</a> and <code>ledger-recur</code>
+exist to materialise recurring entries into the file.</p>
+<p><strong>Repetition model:</strong> calendar-interval only, no count-based repetition.
+Generated at report time, not stored.</p>
+<h3 id="hledger">hledger</h3>
+<p>hledger extends Ledger's periodic transactions with a <code>--forecast</code> flag
+that generates real transactions into the report:</p>
+<pre><code class="language-hledger">~ every 2 weeks from 2024/06 to 2024/09
+  Assets:Bank:Checking   $1500.00
+  Income:Salary
+</code></pre>
+<p>Period expressions are rich:</p>
+<ul>
+<li><code>~ monthly</code></li>
+<li><code>~ every 2 weeks from 2024/01 to 2024/06</code></li>
+<li><code>~ every 2nd Thursday of month from 2024/01 to 2024/04</code></li>
+<li><code>~ every nov 29th from 2024 to 2026</code></li>
+</ul>
+<p>Generated transactions carry a <code>recur</code> tag with the period expression
+as value, so downstream tools can distinguish them from manually
+entered transactions.</p>
+<p>The <a href="https://github.com/olimorris/hledger-forecast">hledger-forecast</a>
+plugin adds YAML-based forecast definitions with more control.</p>
+<p><strong>Repetition model:</strong> calendar-interval with date ranges, no explicit
+count. Transactions are generated at query time via <code>--forecast</code>, not
+stored in the journal.</p>
+<h3 id="beancount">Beancount</h3>
+<p>Beancount has <strong>no built-in recurring transaction support</strong>. The
+philosophy is that the journal contains only actual, occurred
+transactions. Repetition is handled by plugins:</p>
+<p><strong>beancount-periodic</strong> — uses metadata to drive generation:</p>
+<pre><code class="language-beancount">2024-03-31 * &quot;Provider&quot; &quot;Net Fee&quot;
+  recur: &quot;1 Year /Monthly&quot;
+  Liabilities:CreditCard  -50 USD
+  Expenses:CommunicationFee  50 USD
+</code></pre>
+<p><strong>beancount-repete</strong> — natural language scheduling:</p>
+<pre><code class="language-beancount">2024-01-01 ! &quot;Supermarket&quot; &quot;Weekly shop&quot;
+  repete: &quot;weekly on Tuesday until March 2024&quot;
+  Assets:Bank  -75.00 GBP
+  Expenses:Groceries  75.00 GBP
+</code></pre>
+<p><strong>Fava forecast plugin</strong> — tag-based syntax in narration:</p>
+<pre><code class="language-beancount">2024-01-01 # &quot;Rent payment [MONTHLY]&quot;
+  Expenses:Housing:Rent   2500.00 USD
+  Assets:Checking        -2500.00 USD
+</code></pre>
+<p>Can use <code>REPEAT n TIMES</code> for count-based repetition — the only PTA
+ecosystem that supports this natively (via plugin).</p>
+<p><strong>Repetition model:</strong> plugin-driven, varies by plugin. Most are
+calendar-interval; Fava's plugin supports count-based. Expanded at
+load time by the plugin.</p>
+<h3 id="gnucash">GnuCash</h3>
+<p>GnuCash (not plain-text, but relevant as a reference) has full
+scheduled transaction support in the GUI:</p>
+<ul>
+<li>Frequency (weekly, monthly, etc.)</li>
+<li>Start/end date</li>
+<li>Number of occurrences (count-based)</li>
+<li>&quot;Since Last Run&quot; assistant that creates transactions on startup</li>
+</ul>
+<p><strong>Repetition model:</strong> calendar + count, stored as schedule metadata
+separately from the ledger. Materialised into the register
+interactively.</p>
+<h3 id="coin-mkobeticcoin">Coin (mkobetic/coin)</h3>
+<p>Go implementation of the Ledger model. No recurring transaction
+support found — focuses on the core parse/report cycle.</p>
+<h3 id="transity">Transity</h3>
+<p>YAML-based format that models flows rather than postings (similar
+philosophy to Goluca). No recurring transaction support found in the
+format itself.</p>
+<h3 id="knut">Knut</h3>
+<p>Go-based PTA tool. Supports prices, transactions, balance assertions,
+and value directives. No recurring transaction syntax found.</p>
+<h2 id="summary-table">Summary Table</h2>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Built-in?</th>
+<th>Calendar interval</th>
+<th>Count-based</th>
+<th>Storage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ledger</td>
+<td><code>~</code> periodic</td>
+<td>Yes</td>
+<td>No</td>
+<td>Report-time only</td>
+</tr>
+<tr>
+<td>hledger</td>
+<td><code>~</code> periodic + <code>--forecast</code></td>
+<td>Yes (rich expressions)</td>
+<td>No</td>
+<td>Generated at query time</td>
+</tr>
+<tr>
+<td>Beancount</td>
+<td>No (plugins)</td>
+<td>Yes (via plugins)</td>
+<td>Yes (Fava: <code>REPEAT n TIMES</code>)</td>
+<td>Expanded by plugin at load</td>
+</tr>
+<tr>
+<td>GnuCash</td>
+<td>Yes (GUI)</td>
+<td>Yes</td>
+<td>Yes (occurrence count)</td>
+<td>Schedule metadata + materialise</td>
+</tr>
+<tr>
+<td>Coin</td>
+<td>No</td>
+<td>No</td>
+<td>No</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Transity</td>
+<td>No</td>
+<td>No</td>
+<td>No</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>Knut</td>
+<td>No</td>
+<td>No</td>
+<td>No</td>
+<td>N/A</td>
+</tr>
+</tbody>
+</table>
+<h2 id="the-readability--redundancy-spectrum">The Readability / Redundancy Spectrum</h2>
+<p>PTA formats sit on a spectrum between two extremes:</p>
+<h3 id="fully-expanded-maximum-redundancy">Fully expanded (maximum redundancy)</h3>
+<p>Every transaction is written out explicitly. 28 monthly interest
+payments means 28 transaction blocks in the file.</p>
+<pre><code class="language-goluca">2024-01-15 * Monthly interest
+  Assets:Bank:Current -&gt; Income:Interest &quot;Jan interest&quot; 10.00 GBP
+
+2024-02-15 * Monthly interest
+  Assets:Bank:Current -&gt; Income:Interest &quot;Feb interest&quot; 10.00 GBP
+
+; ... 26 more ...
+</code></pre>
+<p><strong>Pros:</strong></p>
+<ul>
+<li>Maximally readable — no mental model required beyond &quot;read the file&quot;</li>
+<li>Each entry is independently verifiable</li>
+<li><code>grep</code>, <code>diff</code>, <code>git blame</code> all work naturally</li>
+<li>No parser support needed for repetition</li>
+<li>Clear audit trail — every transaction is visible</li>
+</ul>
+<p><strong>Cons:</strong></p>
+<ul>
+<li>Verbose — obscures the pattern behind repetitive noise</li>
+<li>Error-prone to maintain — changing the amount means 28 edits</li>
+<li>Violates DRY — the <em>intent</em> (&quot;28 identical payments&quot;) is lost</li>
+<li>The file is dominated by mechanical repetition, not information</li>
+</ul>
+<h3 id="fully-compact-maximum-information-density">Fully compact (maximum information density)</h3>
+<p>A single directive generates all 28 transactions:</p>
+<pre><code>repeat 28 monthly from 2024-01-15
+  Assets:Bank:Current -&gt; Income:Interest &quot;Monthly interest&quot; 10.00 GBP
+</code></pre>
+<p><strong>Pros:</strong></p>
+<ul>
+<li>Intent is explicit — &quot;28 monthly payments&quot; is right there</li>
+<li>Single point of change</li>
+<li>File contains only decisions, not their mechanical expansion</li>
+<li>Compact test data generation</li>
+</ul>
+<p><strong>Cons:</strong></p>
+<ul>
+<li>Requires tool support to expand</li>
+<li>Not self-evident — you need to understand the <code>repeat</code> directive</li>
+<li>Raw file doesn't show actual transaction dates</li>
+<li>Harder to verify individual transactions</li>
+<li>Audit trail is less clear — was the 15th payment actually made?</li>
+</ul>
+<h3 id="the-middle-ground">The middle ground</h3>
+<p>Most PTA tools sit closer to the expanded end. The journal is the
+<em>book of record</em> — it should contain what actually happened, not
+templates for what might happen. Periodic/forecast features are
+typically:</p>
+<ol>
+<li>Separate from the main journal (hledger's <code>--forecast</code>)</li>
+<li>Clearly marked as generated (hledger's <code>recur</code> tag)</li>
+<li>Plugin territory, not core syntax (Beancount)</li>
+</ol>
+<p>This reflects an accounting principle: the journal records <em>facts</em>.
+Repetition rules are <em>policy</em> that generates facts.</p>
+<h2 id="design-considerations-for-goluca">Design Considerations for Goluca</h2>
+<h3 id="use-case-test-data-generation-vs-journal-entries">Use case: test data generation vs journal entries</h3>
+<p>The motivating use case — &quot;repeat this movement 28 times for a test
+banking product&quot; — is closer to test data generation than journal
+recording. This distinction matters:</p>
+<table>
+<thead>
+<tr>
+<th>Concern</th>
+<th>Test data</th>
+<th>Journal</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Readability</td>
+<td>Intent matters most</td>
+<td>Individual entries matter most</td>
+</tr>
+<tr>
+<td>Auditability</td>
+<td>Not required</td>
+<td>Essential</td>
+</tr>
+<tr>
+<td>Compactness</td>
+<td>High value</td>
+<td>Lower priority</td>
+</tr>
+<tr>
+<td>Tool support</td>
+<td>Can require expansion step</td>
+<td>Should work with basic tools</td>
+</tr>
+</tbody>
+</table>
+<h3 id="proposed-design--flag-with-repeat-clause">Proposed design: <code>~</code> flag with repeat clause</h3>
+<p>Use <code>~</code> as a third flag alongside <code>*</code> (cleared) and <code>!</code> (pending),
+followed by a repeat clause specifying either a count or an end date,
+and an interval. This echoes the Ledger/hledger convention where <code>~</code>
+signals periodicity, but brings it into the transaction header as a
+proper flag.</p>
+<p>The existing Goluca grammar defines:</p>
+<pre><code class="language-abnf">header = datetime [knowledge_datetime] _sp flag [_sp payee] %s&quot;\n&quot;
+flag   = (%s&quot;*&quot; / %s&quot;!&quot;)
+</code></pre>
+<p>The extension adds <code>~</code> as a flag value and a repeat clause between the
+flag and the optional payee:</p>
+<pre><code class="language-abnf">flag           = (%s&quot;*&quot; / %s&quot;!&quot; / %s&quot;~&quot;)
+repeat_clause  = %s&quot;repeat&quot; _sp (count_repeat / until_repeat)
+count_repeat   = count _sp interval
+until_repeat   = interval _sp %s&quot;until&quot; _sp datetime
+count          = @pattern(&quot;[1-9][0-9]*&quot;)
+interval       = %s&quot;daily&quot; / %s&quot;weekly&quot; / %s&quot;monthly&quot; / %s&quot;yearly&quot;
+</code></pre>
+<p>The header becomes:</p>
+<pre><code class="language-abnf">header = datetime [knowledge_datetime] _sp flag [_sp repeat_clause] [_sp payee] %s&quot;\n&quot;
+</code></pre>
+<p>The repeat clause is only valid when the flag is <code>~</code>.</p>
+<h4 id="syntax-examples">Syntax examples</h4>
+<p><strong>Count-based</strong> — repeat 26 times at daily intervals:</p>
+<pre><code class="language-goluca">2024-01-15 ~ repeat 26 daily Interest accrual
+  Assets:Bank:Current -&gt; Income:Interest &quot;Daily interest&quot; 0.38 GBP
+</code></pre>
+<p>Expands to 26 transactions: 2024-01-15, 2024-01-16, ..., 2024-02-09.</p>
+<p><strong>Until-based</strong> — repeat monthly until an end date:</p>
+<pre><code class="language-goluca">2024-01-15 ~ repeat monthly until 2024-12-15 Monthly interest
+  Assets:Bank:Current -&gt; Income:Interest &quot;Monthly interest&quot; 10.00 GBP
+</code></pre>
+<p>Expands to 12 transactions: 2024-01-15, 2024-02-15, ..., 2024-12-15.</p>
+<p><strong>Count + monthly</strong> — exactly 28 monthly payments:</p>
+<pre><code class="language-goluca">2024-01-01 ~ repeat 28 monthly Mortgage payment
+  Assets:Bank:Current -&gt; Liabilities:Mortgage &quot;Monthly repayment&quot; 850.00 GBP
+</code></pre>
+<h4 id="why--as-a-flag">Why <code>~</code> as a flag</h4>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Familiar</td>
+<td>Ledger/hledger use <code>~</code> for periodic transactions</td>
+</tr>
+<tr>
+<td>Distinct</td>
+<td>Visually different from <code>*</code> and <code>!</code> — stands out in the file</td>
+</tr>
+<tr>
+<td>Parseable</td>
+<td>Single character, easy to match in tree-sitter</td>
+</tr>
+<tr>
+<td>Semantic</td>
+<td>Signals &quot;this is a template, not a single event&quot;</td>
+</tr>
+</tbody>
+</table>
+<h4 id="interval-semantics">Interval semantics</h4>
+<table>
+<thead>
+<tr>
+<th>Interval</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>daily</code></td>
+<td>+1 calendar day</td>
+</tr>
+<tr>
+<td><code>weekly</code></td>
+<td>+7 calendar days</td>
+</tr>
+<tr>
+<td><code>monthly</code></td>
+<td>Same day-of-month in next month. If the day doesn't exist (e.g. 31st in February), roll back to last day of month</td>
+</tr>
+<tr>
+<td><code>yearly</code></td>
+<td>Same day-of-year. Feb 29 in non-leap years becomes Feb 28</td>
+</tr>
+</tbody>
+</table>
+<h4 id="edge-cases">Edge cases</h4>
+<p><strong>Day-of-month overflow:</strong> <code>2024-01-31 ~ repeat 3 monthly</code> produces
+2024-01-31, 2024-02-29 (leap year), 2024-03-31. The rule is: clamp
+to last day of month, then resume the original day when possible.</p>
+<p><strong>Until date not on boundary:</strong> <code>2024-01-15 ~ repeat daily until 2024-01-17</code>
+produces 3 transactions (15th, 16th, 17th inclusive).</p>
+<p><strong>Knowledge dates:</strong> Each expanded transaction gets its own date but
+the knowledge date (if present) applies only to the template — it
+records when the <em>repetition rule</em> was known, not when each instance
+was known.</p>
+<h4 id="interaction-with-linked-movements">Interaction with linked movements</h4>
+<p>Linked movements (<code>+</code> prefix) repeat as a group:</p>
+<pre><code class="language-goluca">2024-01-20 ~ repeat 12 monthly Transfer with fee
+  Assets:Bank:Current -&gt; Assets:Savings &quot;Monthly savings&quot; 500.00 GBP
+  +Assets:Bank:Current -&gt; Expenses:BankCharges &quot;Transfer fee&quot; 1.50 GBP
+</code></pre>
+<p>Each expansion produces a complete transaction with both movements.</p>
+<h4 id="expansion-model">Expansion model</h4>
+<p>Two approaches, both viable:</p>
+<ol>
+<li>
+<p><strong>Expand at parse time</strong> — the parser/tool generates N concrete
+transactions. The <code>~</code> transaction is never stored in a ledger;
+it's syntactic sugar. This is the simplest model and matches the
+test-data-generation use case.</p>
+</li>
+<li>
+<p><strong>Expand on demand</strong> — the <code>~</code> transaction is preserved in the
+AST and expanded only when generating reports or output. This
+keeps the source file compact but requires all downstream tools
+to understand <code>~</code>.</p>
+</li>
+</ol>
+<p>Recommendation: <strong>expand at parse time</strong> for the initial
+implementation. A <code>goluca expand</code> subcommand could also materialise
+the transactions into a file for auditing.</p>
+<h2 id="open-questions">Open Questions</h2>
+<ol>
+<li>
+<p><strong>Additional intervals?</strong> <code>fortnightly</code> (every 2 weeks)?
+<code>quarterly</code>? Or keep the set minimal and add later.</p>
+</li>
+<li>
+<p><strong>Multiplied intervals?</strong> Should <code>repeat 6 2-weekly</code> or
+<code>repeat 4 3-monthly</code> be supported, or is that over-engineering
+for now?</p>
+</li>
+<li>
+<p><strong>Variable amounts?</strong> The current design repeats the exact same
+movement. If amounts need to vary (e.g. amortisation schedules),
+that's a template language — a much larger design surface best
+deferred.</p>
+</li>
+<li>
+<p><strong>Interaction with <code>require-accounts</code>?</strong> A <code>~</code> transaction should
+validate accounts and commodities the same as <code>*</code> or <code>!</code>.</p>
+</li>
+<li>
+<p><strong>Should expanded transactions carry provenance metadata?</strong> e.g.
+<code>generated-from: line 42</code> or a <code>recur</code> tag like hledger. Useful
+for debugging but adds noise.</p>
+</li>
+</ol>
+<h2 id="references">References</h2>
+<ul>
+<li><a href="https://ledger-cli.org/doc/ledger3.html">Ledger periodic transactions</a></li>
+<li><a href="https://hledger.org/forecasting.html">hledger forecasting</a></li>
+<li><a href="https://hledger.org/budgeting-and-forecasting.html">hledger budgeting and forecasting</a></li>
+<li><a href="https://github.com/dallaslu/beancount-periodic">beancount-periodic</a></li>
+<li><a href="https://github.com/jpluscplusm/beancount-repete">beancount-repete</a></li>
+<li><a href="https://beancount.io/docs/Tips/forecast-plugin">Fava forecast plugin</a></li>
+<li><a href="https://wiki.gnucash.org/wiki/Scheduled_Transactions">GnuCash scheduled transactions</a></li>
+<li><a href="https://github.com/olimorris/hledger-forecast">hledger-forecast</a></li>
+<li><a href="https://plaintextaccounting.org/">plaintextaccounting.org</a></li>
+</ul>
+
+            </div>
+        </div>
+    </section>
+</body>
+</html>

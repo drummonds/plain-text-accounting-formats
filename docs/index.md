@@ -59,6 +59,12 @@ Both use the same arrow operators (`->`, `//`, `>`) and linked-movement syntax.
   Assets:Bank:Current -> Expenses:Groceries Weekly groceries 45.50 GBP
 ```
 
+## Research
+
+| Topic | Summary |
+|-------|---------|
+| [Repeating Transactions](research/repeating-transactions.html) | How PTA formats handle recurring transactions; readability vs information density trade-offs |
+
 ## Grammar Build Pipeline
 
 Each format is defined by a `grammar.js` file in its own tree-sitter

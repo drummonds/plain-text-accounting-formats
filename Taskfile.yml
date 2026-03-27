@@ -76,5 +76,6 @@ tasks:
       - task-plus md2html --project "{{.PROJECT}}" --file README.md --dst docs
       - task-plus md2html --project "{{.PROJECT}}" --file ROADMAP.md --dst docs
       - task-plus md2html --project "{{.PROJECT}}" --src docs/internal --dst docs/internal
+      - task-plus md2html --project "{{.PROJECT}}" --src docs/research --dst docs/research
       - go run ./cmd/docs
 
